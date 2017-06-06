@@ -1,0 +1,64 @@
+#!/bin/bash
+#
+#	/etc/rc.d/init.d/minio
+#
+#	start | stop | restart daemon for minio server
+#	minio installed in: /usr/local/bin minio
+#       minio config in: /etc/minio/
+#       minio volume at: /mnt/export
+#
+# Source function library.
+. /etc/init.d/functions
+
+RETVAL=0
+APP="minio"
+APP_BIN="/usr/local/bin/$APP"
+LOCKFILE="/var/lock/subsys/$APP"
+USER="minio-user"
+MINIOCONFIGPATH=/etc/minio
+MINIOVOLUMES=/mnt/export
+LOG_FILE=/var/log/minio/minio_log.txt
+
+start() {
+        echo -n "Starting $APP: "
+        if [ -e $LOCKFILE ]; then
+            failure ""
+        else
+            daemon $APP_BIN --quiet --config-dir $MINIOCONFIGPATH server $MINIOVOLUMES &
+            RETVAL=$?
+            [ $RETVAL -eq 0 ] && touch $LOCKFILE
+            success ""
+        fi
+        echo
+        return $RETVAL
+}
+
+stop() {
+        echo -n "Shutting down $APP: "
+        killproc $APP_BIN
+        RETVAL=$?
+        [ $RETVAL -eq 0 ] && rm -f $LOCKFILE
+        echo
+        return $RETVAL
+}
+
+case "$1" in
+    start)
+	start
+	;;
+    stop)
+	stop
+	;;
+    status)
+        status $APP_BIN
+        ;;
+    restart)
+	stop
+	start
+	;;
+    *)
+        echo "Usage: $APP {start|stop|restart|status)]"
+        exit 1
+        ;;
+esac
+exit $?
