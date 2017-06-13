@@ -1,0 +1,5 @@
+# Variables for Vagrant VM
+
+minio_user: minio-user
+minio_path: /usr/local/bin/minio
+minio_download_url: https://dl.minio.io/server/minio/release/linux-amd64/minio

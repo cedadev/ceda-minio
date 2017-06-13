@@ -1,0 +1,59 @@
+---
+# Ansible playbook to deploy minio (object store) to a JASMIN VM in the (un)managed cloud
+# Author: Neil Massey
+# Date  : 12/06/2017
+
+- hosts: ceda-minio
+  remote_user: root
+
+  tasks:
+  - name: Create minio-user as non-login shell user
+    user:
+      name: "{{ minio_user }}"
+      createhome: no
+  
+  - name: wget minio server, change user to {{ minio_user }} and add execute permissions
+    get_url:
+      url: "{{ minio_download_url }}"
+      dest: "{{ minio_path }}"
+      owner: "{{ minio_user }}"
+      mode: u=rx
+            
+  - name: Get the /etc/init.d script from github
+    get_url:
+      url: "https://raw.githubusercontent.com/cedadev/ceda-minio/master/etc/init.d/minio"
+      dest: "/etc/init.d/minio"
+      owner: "{{ minio_user }}"
+      mode: a=rx
+
+  - name: Make /etc/minio directory
+    file: 
+      path: "/etc/minio"
+      state: directory
+      owner: "{{ minio_user }}"
+
+  - name: Get the /etc/minio/config.json script from github
+    get_url:
+      url: "https://raw.githubusercontent.com/cedadev/ceda-minio/master/etc/minio/config.json"
+      dest: "/etc/minio/config.json"
+      owner: "{{ minio_user }}"
+      mode: a=r
+
+  - name: Create the /mnt/export directory
+    file:
+      path: "/mnt/export"
+      state: directory
+      owner: "{{ minio_user }}"
+      mode: u=rwx
+
+  - name: Create the /var/log/minio directory
+    file:
+      path: "/var/log/minio"
+      state: directory
+      owner: "{{ minio_user }}"
+      mode: u=rwx
+
+  - name: Start the minio service
+    service:
+      name: minio
+      state: started
