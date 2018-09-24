@@ -57,6 +57,3 @@
     service:
       name: minio
       state: started
-
-#  - name: Open port 9000
-#    command: "iptables -I INPUT 1 -p tcp -m tcp --dport 9000 -j ACCEPT"
